@@ -238,6 +238,8 @@ class StoryItem {
     Map<String, dynamic>? requestHeaders,
     required String id,
     required String thumbnail,
+    required double width,
+    required double height,
   }) {
     return StoryItem(
       Container(
@@ -248,6 +250,8 @@ class StoryItem {
             StoryVideo.url(
               url,
               thumbnail,
+              width,
+              height,
               controller: controller,
               requestHeaders: requestHeaders,
             ),

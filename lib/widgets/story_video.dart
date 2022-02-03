@@ -44,12 +44,17 @@ class StoryVideo extends StatefulWidget {
   final StoryController? storyController;
   final VideoLoader videoLoader;
   final String thumbnail;
+  final double width;
+  final double height;
 
-  StoryVideo(this.videoLoader, this.thumbnail, {this.storyController, Key? key}) : super(key: key ?? UniqueKey());
+  StoryVideo(this.videoLoader, this.thumbnail, this.width, this.height, {this.storyController, Key? key})
+      : super(key: key ?? UniqueKey());
 
   static StoryVideo url(
     String url,
-    String thumbnail, {
+    String thumbnail,
+    double width,
+    double height, {
     StoryController? controller,
     Map<String, dynamic>? requestHeaders,
     Key? key,
@@ -57,6 +62,8 @@ class StoryVideo extends StatefulWidget {
     return StoryVideo(
       VideoLoader(url, requestHeaders: requestHeaders),
       thumbnail,
+      width,
+      height,
       storyController: controller,
       key: key,
     );
@@ -117,13 +124,13 @@ class StoryVideoState extends State<StoryVideo> {
 
     return widget.videoLoader.state == LoadState.loading
         ? SizedBox(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,
+            width: widget.width,
+            height: widget.height,
             child: Stack(
               children: [
                 Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
+                  width: widget.width,
+                  height: widget.height,
                   decoration: BoxDecoration(
                     image: DecorationImage(
                       image: NetworkImage(widget.thumbnail),
