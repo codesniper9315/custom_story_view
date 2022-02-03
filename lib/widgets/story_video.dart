@@ -121,11 +121,15 @@ class StoryVideoState extends State<StoryVideo> {
             height: MediaQuery.of(context).size.height,
             child: Stack(
               children: [
-                Image.network(
-                  widget.thumbnail,
+                Container(
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height,
-                  fit: BoxFit.cover,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: NetworkImage(widget.thumbnail),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
                 Center(
                   child: Container(
