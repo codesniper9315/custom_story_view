@@ -134,7 +134,7 @@ class StoryVideoState extends State<StoryVideo> {
                   decoration: BoxDecoration(
                     image: DecorationImage(
                       image: NetworkImage(widget.thumbnail),
-                      fit: BoxFit.cover,
+                      fit: BoxFit.fitWidth,
                     ),
                   ),
                 ),

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
@@ -454,11 +453,11 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
   VerticalDragInfo? verticalDragInfo;
 
   StoryItem? get _currentStory {
-    return widget.storyItems.firstWhereOrNull((it) => !it!.shown);
+    return widget.storyItems.firstWhereOrNull((item) => !item!.shown);
   }
 
   Widget get _currentView {
-    var item = widget.storyItems.firstWhereOrNull((it) => !it!.shown);
+    var item = widget.storyItems.firstWhereOrNull((item) => !item!.shown);
     item ??= widget.storyItems.last;
     return item?.view ?? Container();
   }
@@ -469,7 +468,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
 
     // All pages after the first unshown page should have their shown value as
     // false
-    final firstPage = widget.storyItems.firstWhereOrNull((it) => !it!.shown);
+    final firstPage = widget.storyItems.firstWhereOrNull((item) => !item!.shown);
     if (firstPage == null) {
       widget.storyItems.forEach((it2) {
         it2!.shown = false;
@@ -528,8 +527,8 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
   void _play() {
     _animationController?.dispose();
     // get the next playing page
-    final storyItem = widget.storyItems.firstWhere((it) {
-      return !it!.shown;
+    final storyItem = widget.storyItems.firstWhere((item) {
+      return !item!.shown;
     })!;
 
     if (widget.onStoryShow != null) {
@@ -647,7 +646,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                   vertical: 8,
                 ),
                 child: PageBar(
-                  widget.storyItems.map((it) => PageData(it!.duration, it.shown)).toList(),
+                  widget.storyItems.map((item) => PageData(item!.duration, item.shown)).toList(),
                   this._currentAnimation,
                   key: UniqueKey(),
                   indicatorHeight: widget.inline ? IndicatorHeight.small : IndicatorHeight.large,
@@ -656,64 +655,64 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
             ),
           ),
           Align(
-              alignment: Alignment.centerRight,
-              heightFactor: 1,
-              child: GestureDetector(
-                onTapDown: (details) {
-                  widget.controller.pause();
-                },
-                onTapCancel: () {
+            alignment: Alignment.centerRight,
+            heightFactor: 1,
+            child: GestureDetector(
+              onTapDown: (details) {
+                widget.controller.pause();
+              },
+              onTapCancel: () {
+                widget.controller.play();
+              },
+              onTapUp: (details) {
+                // if debounce timed out (not active) then continue anim
+                if (_nextDebouncer?.isActive == false) {
                   widget.controller.play();
-                },
-                onTapUp: (details) {
-                  // if debounce timed out (not active) then continue anim
-                  if (_nextDebouncer?.isActive == false) {
-                    widget.controller.play();
-                  } else {
-                    widget.controller.next();
-                  }
-                },
-                onVerticalDragStart: widget.onVerticalSwipeComplete == null
-                    ? null
-                    : (details) {
-                        widget.controller.pause();
-                      },
-                onVerticalDragCancel: widget.onVerticalSwipeComplete == null
-                    ? null
-                    : () {
-                        widget.controller.play();
-                      },
-                onVerticalDragUpdate: widget.onVerticalSwipeComplete == null
-                    ? null
-                    : (details) {
-                        if (verticalDragInfo == null) {
-                          verticalDragInfo = VerticalDragInfo();
-                        }
+                } else {
+                  widget.controller.next();
+                }
+              },
+              onVerticalDragStart: widget.onVerticalSwipeComplete == null
+                  ? null
+                  : (details) {
+                      widget.controller.pause();
+                    },
+              onVerticalDragCancel: widget.onVerticalSwipeComplete == null
+                  ? null
+                  : () {
+                      widget.controller.play();
+                    },
+              onVerticalDragUpdate: widget.onVerticalSwipeComplete == null
+                  ? null
+                  : (details) {
+                      if (verticalDragInfo == null) {
+                        verticalDragInfo = VerticalDragInfo();
+                      }
 
-                        verticalDragInfo!.update(details.primaryDelta!);
+                      verticalDragInfo!.update(details.primaryDelta!);
+                    },
+              onVerticalDragEnd: widget.onVerticalSwipeComplete == null
+                  ? null
+                  : (details) {
+                      widget.controller.play();
+                      // finish up drag cycle
+                      if (!verticalDragInfo!.cancel && widget.onVerticalSwipeComplete != null) {
+                        widget.onVerticalSwipeComplete!(verticalDragInfo!.direction);
+                      }
 
-                        // TODO: provide callback interface for animation purposes
-                      },
-                onVerticalDragEnd: widget.onVerticalSwipeComplete == null
-                    ? null
-                    : (details) {
-                        widget.controller.play();
-                        // finish up drag cycle
-                        if (!verticalDragInfo!.cancel && widget.onVerticalSwipeComplete != null) {
-                          widget.onVerticalSwipeComplete!(verticalDragInfo!.direction);
-                        }
-
-                        verticalDragInfo = null;
-                      },
-              )),
+                      verticalDragInfo = null;
+                    },
+            ),
+          ),
           Align(
             alignment: Alignment.centerLeft,
             heightFactor: 1,
             child: SizedBox(
-                child: GestureDetector(onTap: () {
-                  widget.controller.previous();
-                }),
-                width: 70),
+              child: GestureDetector(onTap: () {
+                widget.controller.previous();
+              }),
+              width: 70,
+            ),
           ),
         ],
       ),
