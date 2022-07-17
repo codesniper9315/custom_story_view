@@ -20,6 +20,12 @@ class VideoLoader {
   VideoLoader(this.url, {this.requestHeaders});
 
   void loadVideo(VoidCallback onComplete) {
+    var a = Uri.parse(this.url);
+    if (a.pathSegments.last.endsWith('m3u8')) {
+      this.state = LoadState.success;
+      this.videoFile = null;
+      onComplete();
+    }
     if (this.videoFile != null) {
       this.state = LoadState.success;
       onComplete();
@@ -90,7 +96,11 @@ class StoryVideoState extends State<StoryVideo> {
 
     widget.videoLoader.loadVideo(() {
       if (widget.videoLoader.state == LoadState.success) {
-        this.playerController = VideoPlayerController.file(widget.videoLoader.videoFile!);
+        if (widget.videoLoader.videoFile != null) {
+          this.playerController = VideoPlayerController.file(widget.videoLoader.videoFile!);
+        } else {
+          this.playerController = VideoPlayerController.network(widget.videoLoader.url, formatHint: VideoFormat.hls);
+        }
 
         playerController!.initialize().then((v) {
           setState(() {});
