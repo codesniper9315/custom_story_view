@@ -16,12 +16,19 @@ class VideoLoader {
   Map<String, dynamic>? requestHeaders;
 
   LoadState state = LoadState.loading;
+  VideoFormat format = VideoFormat.other;
 
   VideoLoader(this.url, {this.requestHeaders});
 
   void loadVideo(VoidCallback onComplete) {
     var a = Uri.parse(this.url);
-    if (a.pathSegments.last.endsWith('m3u8')) {
+    var ext = a.pathSegments.last;
+    if (ext.endsWith('m3u8')) {
+      this.format = VideoFormat.hls;
+    } else {
+      this.format = VideoFormat.other;
+    }
+    if (this.format == VideoFormat.hls) {
       this.state = LoadState.success;
       this.videoFile = null;
       onComplete();
@@ -33,8 +40,10 @@ class VideoLoader {
       return;
     }
 
-    final fileStream =
-        DefaultCacheManager().getFileStream(this.url, headers: this.requestHeaders as Map<String, String>?);
+    final fileStream = DefaultCacheManager().getFileStream(
+      this.url,
+      headers: this.requestHeaders as Map<String, String>?,
+    );
 
     fileStream.listen((fileResponse) {
       if (fileResponse is FileInfo) {
@@ -134,7 +143,7 @@ class StoryVideoState extends State<StoryVideo> {
       );
     }
 
-    return widget.videoLoader.state == LoadState.loading
+    return widget.videoLoader.format == VideoFormat.hls || widget.videoLoader.state == LoadState.loading
         ? SizedBox(
             width: widget.width,
             height: widget.height,
