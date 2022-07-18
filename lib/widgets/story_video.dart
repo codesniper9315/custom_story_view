@@ -25,10 +25,12 @@ class VideoLoader {
       this.state = LoadState.success;
       this.videoFile = null;
       onComplete();
+      return;
     }
     if (this.videoFile != null) {
       this.state = LoadState.success;
       onComplete();
+      return;
     }
 
     final fileStream =
