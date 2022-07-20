@@ -159,16 +159,16 @@ class StoryVideoState extends State<StoryVideo> {
                     ),
                   ),
                 ),
-                Center(
-                  child: Container(
-                    width: 70,
-                    height: 70,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      strokeWidth: 3,
-                    ),
-                  ),
-                ),
+                // Center(
+                //   child: Container(
+                //     width: 70,
+                //     height: 70,
+                //     child: CircularProgressIndicator(
+                //       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                //       strokeWidth: 3,
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           )
