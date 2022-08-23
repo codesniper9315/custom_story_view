@@ -58,14 +58,38 @@ class VideoLoader {
 }
 
 class StoryVideo extends StatefulWidget {
+  final File? file;
   final StoryController? storyController;
-  final VideoLoader videoLoader;
-  final String thumbnail;
+  final VideoLoader? videoLoader;
+  final String? thumbnail;
   final double width;
   final double height;
 
-  StoryVideo(this.videoLoader, this.thumbnail, this.width, this.height, {this.storyController, Key? key})
-      : super(key: key ?? UniqueKey());
+  StoryVideo(
+    this.width,
+    this.height, {
+    this.storyController,
+    this.videoLoader,
+    this.file,
+    this.thumbnail,
+    Key? key,
+  }) : super(key: key ?? UniqueKey());
+
+  static StoryVideo local(
+    File file,
+    double width,
+    double height, {
+    StoryController? controller,
+    Key? key,
+  }) {
+    return StoryVideo(
+      width,
+      height,
+      file: file,
+      storyController: controller,
+      key: key,
+    );
+  }
 
   static StoryVideo url(
     String url,
@@ -77,10 +101,10 @@ class StoryVideo extends StatefulWidget {
     Key? key,
   }) {
     return StoryVideo(
-      VideoLoader(url, requestHeaders: requestHeaders),
-      thumbnail,
       width,
       height,
+      videoLoader: VideoLoader(url, requestHeaders: requestHeaders),
+      thumbnail: thumbnail,
       storyController: controller,
       key: key,
     );
@@ -105,36 +129,49 @@ class StoryVideoState extends State<StoryVideo> {
 
     widget.storyController!.pause();
 
-    widget.videoLoader.loadVideo(() {
-      if (widget.videoLoader.state == LoadState.success) {
-        if (widget.videoLoader.videoFile != null) {
-          this.playerController = VideoPlayerController.file(widget.videoLoader.videoFile!);
+    if (widget.videoLoader != null) {
+      widget.videoLoader!.loadVideo(() {
+        if (widget.videoLoader!.state == LoadState.success) {
+          if (widget.videoLoader!.videoFile != null) {
+            this.playerController =
+                VideoPlayerController.file(widget.videoLoader!.videoFile!);
+          } else {
+            this.playerController = VideoPlayerController.network(
+              widget.videoLoader!.url,
+              formatHint: VideoFormat.hls,
+            );
+          }
+          _initializeVideoPlayer();
         } else {
-          this.playerController = VideoPlayerController.network(widget.videoLoader.url, formatHint: VideoFormat.hls);
-        }
-
-        playerController!.initialize().then((v) {
           setState(() {});
-          widget.storyController!.play();
-        });
-
-        if (widget.storyController != null) {
-          _streamSubscription = widget.storyController!.playbackNotifier.listen((playbackState) {
-            if (playbackState == PlaybackState.pause) {
-              playerController!.pause();
-            } else {
-              playerController!.play();
-            }
-          });
         }
-      } else {
-        setState(() {});
-      }
+      });
+    } else if (widget.file != null) {
+      this.playerController = VideoPlayerController.file(widget.file!);
+      _initializeVideoPlayer();
+    }
+  }
+
+  _initializeVideoPlayer() {
+    playerController!.initialize().then((v) {
+      setState(() {});
+      widget.storyController!.play();
     });
+
+    if (widget.storyController != null) {
+      _streamSubscription =
+          widget.storyController!.playbackNotifier.listen((playbackState) {
+        if (playbackState == PlaybackState.pause) {
+          playerController!.pause();
+        } else {
+          playerController!.play();
+        }
+      });
+    }
   }
 
   Widget getContentView() {
-    if (widget.videoLoader.state == LoadState.success && playerController!.value.isInitialized) {
+    if (playerController != null && playerController!.value.isInitialized) {
       return Center(
         child: AspectRatio(
           aspectRatio: playerController!.value.aspectRatio,
@@ -143,7 +180,11 @@ class StoryVideoState extends State<StoryVideo> {
       );
     }
 
-    return widget.videoLoader.format == VideoFormat.hls || widget.videoLoader.state == LoadState.loading
+    if (widget.file != null || widget.thumbnail == null) return Container();
+
+    return widget.videoLoader != null &&
+            (widget.videoLoader!.format == VideoFormat.hls ||
+                widget.videoLoader!.state == LoadState.loading)
         ? SizedBox(
             width: widget.width,
             height: widget.height,
@@ -154,7 +195,7 @@ class StoryVideoState extends State<StoryVideo> {
                   height: widget.height,
                   decoration: BoxDecoration(
                     image: DecorationImage(
-                      image: NetworkImage(widget.thumbnail),
+                      image: NetworkImage(widget.thumbnail!),
                       fit: BoxFit.fitWidth,
                     ),
                   ),
@@ -174,11 +215,12 @@ class StoryVideoState extends State<StoryVideo> {
           )
         : Center(
             child: Text(
-            "Media failed to load.",
-            style: TextStyle(
-              color: Colors.white,
+              "Media failed to load.",
+              style: TextStyle(
+                color: Colors.white,
+              ),
             ),
-          ));
+          );
   }
 
   @override
